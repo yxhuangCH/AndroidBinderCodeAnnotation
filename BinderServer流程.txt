@@ -1,0 +1,47 @@
+ServiceManager.getService    framework/core/java/android/os/ServiceManager.java
+	ServiceManagerNative.asInterface().getSerivce() 	framework/core/java/android/os/ServiceManagerNative.java
+		ServiceManagerProxy.getService() 	framework/core/java/android/os/ServiceManagerNative#ServiceManagerProxy.java
+			IBinder.transact()  framework/core/java/android/os/IBinder.java 
+				//Binder.onTransact()   framework/core/java/android/os/Binder.java 
+					BinderProxy.transact() framework/core/java/android/os/Binder#BinderProxy.java  native 方法
+
+在 native 层
+android_util_Binder.android_os_BinderProxy_transact()   framework/core/jni/android_util_Binder.cpp
+	BpBinder::transact()   framework/native/libs/binder/BpBinder.cpp
+		IPCThreadState::transact()   framework/native/libs/binder/IPCThreadState.cpp
+		TPCThreadState::writeTransactionData()  framework/native/libs/binder/IPCThreadState.cpp
+		TPCThreadState::waitForResponse()  framework/native/libs/binder/IPCThreadState.cpp
+			IPCThreadState::talkWithDriver()	framework/native/libs/binder/IPCThreadState.cpp
+				Binder.binder_ioctl()      android/kernel/drivers/staging/android/binder.c
+					switch (cmd) {
+					case BINDER_WRITE_READ:
+						Binder.binder_thread_write()   android/kernel/drivers/staging/android/binder.c
+							switch (cmd)
+							case BC_TRANSACTION:
+								Binder.binder_transaction()    android/kernel/drivers/staging/android/binder.c
+						// 读取数据
+						Binder.binder_thread_read()   android/kernel/drivers/staging/android/binder.c
+							switch (w->type) {
+							case BINDER_WORK_TRANSACTION_COMPLETE:
+				// 读取回复的数据
+ 				cmd = mIn.readInt32()   android/kernel/drivers/staging/android/binder.c  
+
+				switch (cmd) {          framework/native/libs/binder/IPCThreadState.cpp
+        			case BR_TRANSACTION_COMPLETE:
+            				if (!reply && !acquireResult) goto finish;
+            				break;
+			
+
+
+				// 回复
+        			case BR_REPLY:    	framework/native/libs/binder/IPCThreadState.cpp
+					Parcel::ipcSetDataReference() 	framework/native/libs/binder/Parcel.cpp
+				// 层层返回
+
+
+		 // ServiceManagerProxy.getService() 同级 	framework/core/java/android/os/ServiceManagerNative#ServiceManagerProxy.java
+		IBinder binder = reply.readStrongBinder();
+
+
+
+
